@@ -12,7 +12,6 @@ class SimpleSMACrossover(FlixarStrategy):
         self.short_window = 5
         self.long_window = 10
         self.position = 0 # 0 for flat, 1 for long, -1 for short
-        self.last_trade_candle = None # Track the timestamp of the last candle that triggered a trade
         self.log(f"Strategy initialized for symbol: {self.symbol}")
 
     def on_tick(self, tick, history):
@@ -85,46 +84,35 @@ class SimpleSMACrossover(FlixarStrategy):
         prev_short_sma = resampled.iloc[-self.short_window-1:-1].mean()
         prev_long_sma = resampled.iloc[-self.long_window-1:-1].mean()
 
-        current_candle_ts = resampled.index[-1]
-        if self.last_trade_candle == current_candle_ts:
-            return  # Triggered once already for this candle
-
         self.log(f"{self.symbol} | LTP: {tick['ltp']} | SMA{self.short_window}/{self.long_window}: {short_sma:.1f}/{long_sma:.1f} | Prev: {prev_short_sma:.1f}/{prev_long_sma:.1f}")
 
         # Strategy Logic (True Crossover Event)
         # 🚀 BUY: Fast SMA crossed ABOVE Slow SMA
         if prev_short_sma <= prev_long_sma and short_sma > long_sma:
-            if self.position <= 0:  # Flat or Short
-                if self.position == -1:
-                    self.log("🔻 CROSS OVER UP! Reversing SHORT position to LONG.")
-                    # Reversal: We need to buy 2x qty (once to close -1, once to open +1)
-                    # For simplicity in this runner's place_order logic which expects ENTRY/EXIT,
-                    # we send two separate orders if the runner doesn't handle net positions.
-                    if self.buy(qty=self.qty): # Close Short
-                        if self.buy(qty=self.qty): # Open Long
-                            self.position = 1
-                            self.last_trade_candle = current_candle_ts
-                        else:
-                            self.position = 0
-                else:
+            if self.position == -1:
+                self.log("🔻 CROSS OVER UP! Closing SHORT position.")
+                if self.buy(qty=self.qty):
                     self.log("🚀 GOLDEN CROSS! Entering LONG position.")
                     if self.buy(qty=self.qty):
                         self.position = 1
-                        self.last_trade_candle = current_candle_ts
+                    else:
+                        self.position = 0
+            elif self.position == 0:
+                self.log("🚀 GOLDEN CROSS! Entering LONG position.")
+                if self.buy(qty=self.qty):
+                    self.position = 1
 
         # 🔻 SELL: Fast SMA crossed BELOW Slow SMA
         elif prev_short_sma >= prev_long_sma and short_sma < long_sma:
-            if self.position >= 0: # Flat or Long
-                if self.position == 1:
-                    self.log("🚀 CROSS OVER DOWN! Reversing LONG position to SHORT.")
-                    if self.sell(qty=self.qty): # Close Long
-                        if self.sell(qty=self.qty): # Open Short
-                            self.position = -1
-                            self.last_trade_candle = current_candle_ts
-                        else:
-                            self.position = 0
-                else:
+            if self.position == 1:
+                self.log("🚀 CROSS OVER DOWN! Closing LONG position.")
+                if self.sell(qty=self.qty):
                     self.log("🔻 DEATH CROSS! Entering SHORT position.")
                     if self.sell(qty=self.qty):
                         self.position = -1
-                        self.last_trade_candle = current_candle_ts
+                    else:
+                        self.position = 0
+            elif self.position == 0:
+                self.log("🔻 DEATH CROSS! Entering SHORT position.")
+                if self.sell(qty=self.qty):
+                    self.position = -1
