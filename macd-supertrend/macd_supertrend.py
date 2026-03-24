@@ -1,4 +1,4 @@
-from flixar import FlixarStrategy
+from sdk.flixar import FlixarStrategy
 import pandas as pd
 import numpy as np
 import datetime
@@ -63,7 +63,14 @@ class MACDSupertrendStrategy(FlixarStrategy):
         
         # 4. Check Time Constraints
         # Use the timestamp from the tick for consistent logic with historical/backtest data
-        tick_dt = pd.to_datetime(tick['timestamp'], unit='s', utc=True).tz_convert('Asia/Kolkata')
+        ts = tick['timestamp']
+        if isinstance(ts, (int, float)) or (isinstance(ts, str) and ts.replace('.','',1).isdigit()):
+            num = float(ts)
+            unit = 'ms' if num > 1e12 else 's'
+            tick_dt = pd.to_datetime(num, unit=unit, utc=True).tz_convert('Asia/Kolkata')
+        else:
+            tick_dt = pd.to_datetime(ts, utc=True).tz_convert('Asia/Kolkata')
+            
         now_time = tick_dt.time()
         
         start_time = datetime.time(9, 16)
@@ -122,7 +129,11 @@ class MACDSupertrendStrategy(FlixarStrategy):
                     try:
                         if isinstance(ts, (int, float)) or (isinstance(ts, str) and ts.replace('.','',1).isdigit()):
                             num = float(ts)
-                            return pd.to_datetime(num, unit='ms' if num > 1e12 else 's', utc=True)
+                            # ms if > 13 digits (roughly > yr 2033 in seconds)
+                            if num > 1e12:
+                                return pd.to_datetime(num, unit='ms', utc=True)
+                            else:
+                                return pd.to_datetime(num, unit='s', utc=True)
                         return pd.to_datetime(ts, utc=True)
                     except:
                         return pd.NaT
