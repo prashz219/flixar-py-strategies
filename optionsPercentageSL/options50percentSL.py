@@ -4,7 +4,7 @@ import pandas as pd
 class Options50PercentSL(FlixarStrategy):
     """
     Options 50% SL Strategy:
-    1. Entry: 9:35 AM IST, Sell ATM Straddle (CE & PE).
+    1. Entry: 2:45 PM IST, Sell ATM Straddle (CE & PE).
     2. Exit: 2:55 PM IST or 50% Stop Loss from the average entry premium.
     
     Configuration Requirements:
@@ -39,9 +39,9 @@ class Options50PercentSL(FlixarStrategy):
         now = pd.Timestamp.now(tz='Asia/Kolkata')
         current_time_str = now.strftime("%H:%M")
 
-        # 3. Entry Logic: 9:35 AM
-        if not self.entered and current_time_str >= "09:45" and current_time_str < "15:30":
-            self.log(f"🚀 9:35 AM reached. Entering ATM Straddle for {self.underlying}...")
+        # 3. Entry Logic: 2:45 PM
+        if not self.entered and current_time_str >= "14:45" and current_time_str < "15:30":
+            self.log(f"🚀 2:45 PM reached. Entering ATM Straddle for {self.underlying}...")
             # Calling self.sell() with instrumentType: "OPTIONS" triggers the runner's
             # multi-leg resolution and execution logic.
             if self.sell():
