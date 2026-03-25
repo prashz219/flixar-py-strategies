@@ -4,8 +4,8 @@ import pandas as pd
 class Options50PercentSL(FlixarStrategy):
     """
     Options 50% SL Strategy:
-    1. Entry: 11:30 AM IST, Sell ATM Straddle (CE & PE).
-    2. Exit: 2:55 PM IST or 50% Stop Loss from the average entry premium.
+    1. Entry: 3:15 PM IST, Sell ATM Straddle (CE & PE).
+    2. Exit: 3:20 PM IST or 50% Stop Loss from the average entry premium.
     
     Configuration Requirements:
     - instrumentType: "OPTIONS"
@@ -39,9 +39,9 @@ class Options50PercentSL(FlixarStrategy):
         now = pd.Timestamp.now(tz='Asia/Kolkata')
         current_time_str = now.strftime("%H:%M")
 
-        # 3. Entry Logic: 11:30 AM
-        if not self.entered and current_time_str >= "11:30" and current_time_str < "15:30":
-            self.log(f"🚀 11:30 AM reached. Entering ATM Straddle for {self.underlying}...")
+        # 3. Entry Logic: 3:15 PM
+        if not self.entered and current_time_str >= "15:15" and current_time_str < "15:30":
+            self.log(f"🚀 3:15 PM reached. Entering ATM Straddle for {self.underlying}...")
             # Calling self.sell() with instrumentType: "OPTIONS" triggers the runner's
             # multi-leg resolution and execution logic.
             if self.sell():
@@ -49,11 +49,11 @@ class Options50PercentSL(FlixarStrategy):
                 self.log("✅ Straddle entry orders dispatched.")
             return
 
-        # 4. Exit Logic: SL or 2:55 PM
+        # 4. Exit Logic: SL or 3:20 PM
         if self.entered and not self.exited:
-            # Check for Time Exit: 2:55 PM
-            if current_time_str >= "14:55":
-                self.log(f"🕒 2:55 PM reached. Closing all positions for {self.underlying}...")
+            # Check for Time Exit: 3:20 PM
+            if current_time_str >= "15:20":
+                self.log(f"🕒 3:20 PM reached. Closing all positions for {self.underlying}...")
                 if self.buy(): # Reverses the straddle
                     self.exited = True
                     self.log("✅ Time exit orders dispatched.")
