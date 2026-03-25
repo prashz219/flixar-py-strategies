@@ -1,11 +1,12 @@
 from flixar import FlixarStrategy
 import pandas as pd
+import pytz
 
 class Options50PercentSL(FlixarStrategy):
     """
     Options 50% SL Strategy:
-    1. Entry: 3:15 PM IST, Sell ATM Straddle (CE & PE).
-    2. Exit: 3:20 PM IST or 50% Stop Loss from the average entry premium.
+    1. Entry: 9:35 AM IST, Sell ATM Straddle (CE & PE).
+    2. Exit: 2:55 PM IST or 50% Stop Loss from the average entry premium.
     
     Configuration Requirements:
     - instrumentType: "OPTIONS"
@@ -39,9 +40,9 @@ class Options50PercentSL(FlixarStrategy):
         now = pd.Timestamp.now(tz='Asia/Kolkata')
         current_time_str = now.strftime("%H:%M")
 
-        # 3. Entry Logic: 3:15 PM
-        if not self.entered and current_time_str >= "15:15" and current_time_str < "15:30":
-            self.log(f"🚀 3:15 PM reached. Entering ATM Straddle for {self.underlying}...")
+        # 3. Entry Logic: 9:35 AM
+        if not self.entered and current_time_str >= "17:15" and current_time_str < "23:30":
+            self.log(f"🚀 5:15 PM reached. Entering ATM Straddle for {self.underlying}...")
             # Calling self.sell() with instrumentType: "OPTIONS" triggers the runner's
             # multi-leg resolution and execution logic.
             if self.sell():
@@ -49,12 +50,12 @@ class Options50PercentSL(FlixarStrategy):
                 self.log("✅ Straddle entry orders dispatched.")
             return
 
-        # 4. Exit Logic: SL or 3:20 PM
+        # 4. Exit Logic: SL or 2:55 PM
         if self.entered and not self.exited:
-            # Check for Time Exit: 3:20 PM
-            if current_time_str >= "15:20":
-                self.log(f"🕒 3:20 PM reached. Closing all positions for {self.underlying}...")
-                if self.buy(): # Reverses the straddle
+            # Check for Time Exit: 2:55 PM
+            if current_time_str >= "23:30":
+                self.log(f"🕒 11:30 PM reached. Closing all positions for {self.underlying}...")
+                if self.buy(exit_reason='TARGET_HIT'): # Reverses the straddle
                     self.exited = True
                     self.log("✅ Time exit orders dispatched.")
                 return
@@ -85,7 +86,7 @@ class Options50PercentSL(FlixarStrategy):
                     
                     if current_total_premium >= sl_limit:
                         self.log(f"🚨 SL HIT! Current Premium: {current_total_premium:.2f} >= Limit: {sl_limit:.2f}")
-                        if self.buy():
+                        if self.buy(exit_reason='SL_HIT'):
                             self.exited = True
                             self.log("✅ SL exit orders dispatched.")
             else:
