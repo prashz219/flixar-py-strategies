@@ -5,8 +5,8 @@ import pytz
 class Options50PercentSL(FlixarStrategy):
     """
     Options 50% SL Strategy:
-    1. Entry: 9:35 AM IST, Sell ATM Straddle (CE & PE).
-    2. Exit: 2:55 PM IST or 50% Stop Loss from the average entry premium.
+    1. Entry: 8:00 PM IST, Sell ATM Straddle (CE & PE).
+    2. Exit: 11:30 PM IST or 50% Stop Loss from the average entry premium.
     
     Configuration Requirements:
     - instrumentType: "OPTIONS"
@@ -40,9 +40,9 @@ class Options50PercentSL(FlixarStrategy):
         now = pd.Timestamp.now(tz='Asia/Kolkata')
         current_time_str = now.strftime("%H:%M")
 
-        # 3. Entry Logic: 9:35 AM
-        if not self.entered and current_time_str >= "18:30" and current_time_str < "23:30":
-            self.log(f"🚀 6:30 PM reached. Entering ATM Straddle for {self.underlying}...")
+        # 3. Entry Logic: 8:00 PM
+        if not self.entered and current_time_str >= "20:00" and current_time_str < "23:30":
+            self.log(f"🚀 8:00 PM reached. Entering ATM Straddle for {self.underlying}...")
             # Calling self.sell() with instrumentType: "OPTIONS" triggers the runner's
             # multi-leg resolution and execution logic.
             if self.sell():
@@ -50,9 +50,9 @@ class Options50PercentSL(FlixarStrategy):
                 self.log("✅ Straddle entry orders dispatched.")
             return
 
-        # 4. Exit Logic: SL or 2:55 PM
+        # 4. Exit Logic: SL or 11:30 PM
         if self.entered and not self.exited:
-            # Check for Time Exit: 2:55 PM
+            # Check for Time Exit: 11:30 PM
             if current_time_str >= "23:30":
                 self.log(f"🕒 11:30 PM reached. Closing all positions for {self.underlying}...")
                 if self.buy(exit_reason='TARGET_HIT'): # Reverses the straddle
