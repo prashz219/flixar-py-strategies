@@ -41,8 +41,8 @@ class Options50PercentSL(FlixarStrategy):
         current_time_str = now.strftime("%H:%M")
 
         # 3. Entry Logic: 9:35 AM
-        if not self.entered and current_time_str >= "17:40" and current_time_str < "23:30":
-            self.log(f"🚀 5:40 PM reached. Entering ATM Straddle for {self.underlying}...")
+        if not self.entered and current_time_str >= "17:45" and current_time_str < "23:30":
+            self.log(f"🚀 5:45 PM reached. Entering ATM Straddle for {self.underlying}...")
             # Calling self.sell() with instrumentType: "OPTIONS" triggers the runner's
             # multi-leg resolution and execution logic.
             if self.sell():
